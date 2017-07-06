@@ -1,3 +1,6 @@
-<h1>
-  {{title}}
-</h1>
+Some Text: {{text}}
+<form #form="ngForm" (ngSubmit)="setText(form)">
+	<input ngModel name="text" />
+	<button>Set</button>
+</form>
+<button (click)="login()">Login</button>
