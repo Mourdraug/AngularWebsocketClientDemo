@@ -6,36 +6,38 @@ import { StompService } from '@stomp/ng2-stompjs';
 import { Message } from '@stomp/stompjs';
 
 @Component({
-	selector: 'app-root',
-	templateUrl: './app.component.html',
-	styleUrls: ['./app.component.css']
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-	public text: string = '';
+  public text = '';
 
-	constructor(private stompProvider: StompProvider, private http: Http) {
-		this.subscribeToCurrent();
-	}
+  constructor(private stompProvider: StompProvider, private http: Http) {
+    this.subscribeToCurrent();
+  }
 
-	public setText(form: NgForm) {
-		this.stompProvider.getService().publish('/app/settext', form.value.text);
-	}
+  public setText(form: NgForm) {
+    this.stompProvider.getService().publish('/app/settext', form.value.text);
+  }
 
-	public login() {
-		let headers: Headers = new Headers();
-		headers.append("Authorization", "Basic " + btoa("user:password"));
-		this.http.get("http://localhost:8080/user", { headers: headers, withCredentials: true }).subscribe((res: Response) => {
-			if (res.status == 200) {
-				this.stompProvider.newService();
-				this.subscribeToCurrent();
-			}
-		});
-	}
+  public login() {
+    const headers: Headers = new Headers();
+    headers.append('Authorization', 'Basic ' + btoa('user:password'));
+    this.http.get('http://localhost:8080/user', {
+      headers: headers,
+      withCredentials: true
+    }).subscribe((res: Response) => {
+      if (res.status === 200) {
+        this.stompProvider.newService();
+        this.subscribeToCurrent();
+      }
+    });
+  }
 
-	private subscribeToCurrent() {
-		this.stompProvider.getService().subscribe('/app/text').subscribe((msg: Message) => {
-			this.text = msg.body;
-		});
-
-	}
+  private subscribeToCurrent() {
+    this.stompProvider.getService().subscribe('/app/text').subscribe((msg: Message) => {
+      this.text = msg.body;
+    });
+  }
 }

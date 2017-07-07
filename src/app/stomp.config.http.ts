@@ -6,6 +6,6 @@ import { Http } from '@angular/http';
  * Because it connects in constructor, we have to pass it before super constructor call
  * As messy as it is, extending StompConfig and adding http field there was the only way I found.
  */
-export interface StompConfigHttp extends StompConfig{
-	http:Http;
+export interface StompConfigHttp extends StompConfig {
+  http: Http;
 }
