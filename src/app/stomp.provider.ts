@@ -16,7 +16,7 @@ import { StompConfig, StompService } from '@stomp/ng2-stompjs';
 export class StompProvider {
   public service: StompService;
 
-  private behaviorSubjectStompService = new BehaviorSubject<StompService>(null);
+  private behaviorSubject = new BehaviorSubject<StompService>(null);
 
   public observable: Observable<StompService>;
 
@@ -35,10 +35,7 @@ export class StompProvider {
   constructor(private http: Http) {
     this.service = null;
 
-    this.observable = this.behaviorSubjectStompService.filter((service) => {
-        return !!service;
-      }
-    ).take(1);
+    this.observable = this.behaviorSubject.filter((service) => !!service).take(1);
   }
 
   public refreshService(): void {
@@ -57,7 +54,7 @@ export class StompProvider {
 
   private connect() {
     this.service = new StompService(this.stompConfig);
-    this.behaviorSubjectStompService.next(this.service);
+    this.behaviorSubject.next(this.service);
   }
 
   private getCookie(cookieName: string): string {
@@ -79,7 +76,7 @@ export class StompProvider {
       this.service.disconnect();
       this.service = null;
 
-      this.behaviorSubjectStompService.next(this.service);
+      this.behaviorSubject.next(this.service);
     }
   }
 }
