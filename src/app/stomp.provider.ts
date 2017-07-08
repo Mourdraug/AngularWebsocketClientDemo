@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Http } from '@angular/http';
-import { StompService } from '@stomp/ng2-stompjs';
-import { StompConfigHttp } from  './stomp.config.http';
-import { StompCsrfService } from './stomp.csrf.service';
+
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Observable } from 'rxjs/Observable';
+
+import { StompConfig, StompService } from '@stomp/ng2-stompjs';
 
 /**
  *  Service providing our implementation of StompService which supports csrf protection.
@@ -12,8 +14,13 @@ import { StompCsrfService } from './stomp.csrf.service';
  */
 @Injectable()
 export class StompProvider {
-  private service: StompCsrfService;
-  private stompConfig: StompConfigHttp = {
+  public service: StompService;
+
+  private behaviorSubjectStompService = new BehaviorSubject<StompService>(null);
+
+  public observable: Observable<StompService>;
+
+  private stompConfig: StompConfig = {
     url: 'ws://localhost:8080/stomp',
     headers: {
       login: 'guest',
@@ -22,26 +29,57 @@ export class StompProvider {
     heartbeat_in: 0,
     heartbeat_out: 20000,
     reconnect_delay: 5000,
-    debug: true,
-    http: null
+    debug: true
   };
 
   constructor(private http: Http) {
-    this.stompConfig.http = http;
+    this.service = null;
+
+    this.observable = this.behaviorSubjectStompService.filter((service) => {
+        return !!service;
+      }
+    ).take(1);
   }
 
-  public newService() {
-    if (this.service !== undefined) {
+  public refreshService(): void {
+    this.disconnect();
+
+    document.cookie = 'XSRF-TOKEN=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+
+    this.http.get('http://localhost:8080/csrf', {withCredentials: true}).filter((res) => {
+      return res.status === 200;
+    }).subscribe((res) => {
+      this.stompConfig.headers['X-XSRF-TOKEN'] = this.getCookie('XSRF-TOKEN');
+      this.connect();
+    });
+
+  }
+
+  private connect() {
+    this.service = new StompService(this.stompConfig);
+    this.behaviorSubjectStompService.next(this.service);
+  }
+
+  private getCookie(cookieName: string): string {
+    let value = null;
+
+    const cookies: Array<string> = document.cookie.split(';');
+    for (let c of cookies) {
+      c = c.replace(/^\s+/g, '');
+      if (c.indexOf(cookieName) === 0) {
+        value = c.substring(cookieName.length + 1, c.length);
+      }
+    }
+
+    return value;
+  }
+
+  private disconnect() {
+    if (this.service) {
       this.service.disconnect();
       this.service = null;
-    }
-  }
 
-  public getService(): StompService {
-    if (this.service == null) {
-      console.log(this.service);
-      this.service = new StompCsrfService(this.stompConfig);
+      this.behaviorSubjectStompService.next(this.service);
     }
-    return this.service;
   }
 }

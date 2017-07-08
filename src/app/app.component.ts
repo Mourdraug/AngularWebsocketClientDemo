@@ -14,11 +14,14 @@ export class AppComponent {
   public text = '';
 
   constructor(private stompProvider: StompProvider, private http: Http) {
+    this.stompProvider.refreshService();
     this.subscribeToCurrent();
   }
 
   public setText(form: NgForm) {
-    this.stompProvider.getService().publish('/app/settext', form.value.text);
+    this.stompProvider.observable.subscribe((stompService) => {
+      stompService.publish('/app/settext', form.value.text);
+    });
   }
 
   public login() {
@@ -29,15 +32,17 @@ export class AppComponent {
       withCredentials: true
     }).subscribe((res: Response) => {
       if (res.status === 200) {
-        this.stompProvider.newService();
+        this.stompProvider.refreshService();
         this.subscribeToCurrent();
       }
     });
   }
 
   private subscribeToCurrent() {
-    this.stompProvider.getService().subscribe('/app/text').subscribe((msg: Message) => {
-      this.text = msg.body;
+    this.stompProvider.observable.subscribe((stompService) => {
+      stompService.subscribe('/app/text').subscribe((msg: Message) => {
+        this.text = msg.body;
+      });
     });
   }
 }
