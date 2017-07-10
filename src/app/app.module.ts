@@ -9,17 +9,17 @@ import { StompProvider } from './stomp.provider';
 import { StompConfig } from '@stomp/ng2-stompjs';
 
 @NgModule({
-	declarations: [
-		AppComponent
-	],
-	imports: [
-		BrowserModule,
-		FormsModule,
-		HttpModule
-	],
-	providers: [
-		StompProvider
-	],
-	bootstrap: [AppComponent]
+  declarations: [
+    AppComponent
+  ],
+  imports: [
+    BrowserModule,
+    FormsModule,
+    HttpModule
+  ],
+  providers: [
+    StompProvider
+  ],
+  bootstrap: [AppComponent]
 })
 export class AppModule { }
